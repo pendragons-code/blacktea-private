@@ -5,9 +5,9 @@ module.exports = {
 	createUser(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            INSERT INTO Users (username, email, password, dateOfCreation, gamesPlayed, gamesWon)
-            VALUES (?, ?, ?, NOW(), 0, 0);
-            `;
+        INSERT INTO Users (username, email, password, dateOfCreation, gamesPlayed, gamesWon)
+        VALUES (?, ?, ?, NOW(), 0, 0);
+      `;
 
 			const values = [data.username, data.email, data.password];
 
@@ -22,15 +22,16 @@ module.exports = {
 	getUserById(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT username, dateOfCreation, gamesPlayed, gamesWon FROM Users
-            WHERE id = ?;
-            `;
+        SELECT username, dateOfCreation, gamesPlayed, gamesWon FROM Users
+        WHERE id = ?;
+      `;
 
 			const values = [data.id];
 
 			pool.query(sqlStatement, values, (error, results) => {
 				if (error) return reject(error);
-				resolve(results);
+				if (results.length === 0) return reject(new Error("User not found"));
+				resolve(results[0]);
 			});
 		});
 	},
@@ -39,15 +40,14 @@ module.exports = {
 	getUserByUsername(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT id, dateOfCreation, gamesPlayed, gamesWon FROM Users
-            WHERE username = ?;
-            `;
-
+			SELECT id, username, email, dateOfCreation, gamesPlayed, gamesWon, password FROM Users
+			WHERE username = ?;
+		  `;
 			const values = [data.username];
 
 			pool.query(sqlStatement, values, (error, results) => {
 				if (error) return reject(error);
-				resolve(results);
+				resolve(results.length ? results[0] : null); // Return null if no user found
 			});
 		});
 	},
@@ -56,15 +56,16 @@ module.exports = {
 	getUserStatsByUsername(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT gamesPlayed, gamesWon FROM Users
-            WHERE username = ?;
-            `;
+        SELECT gamesPlayed, gamesWon FROM Users
+        WHERE username = ?;
+      `;
 
 			const values = [data.username];
 
 			pool.query(sqlStatement, values, (error, results) => {
 				if (error) return reject(error);
-				resolve(results);
+				if (results.length === 0) return reject(new Error("User not found"));
+				resolve(results[0]);
 			});
 		});
 	},
@@ -73,27 +74,45 @@ module.exports = {
 	getUserByUsernameWithPassword(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT id, dateOfCreation, gamesPlayed, gamesWon, password FROM Users
-            WHERE username = ?;
-            `;
+        SELECT id, dateOfCreation, gamesPlayed, gamesWon, password FROM Users
+        WHERE username = ?;
+      `;
 
 			const values = [data.username];
 
 			pool.query(sqlStatement, values, (error, results) => {
 				if (error) return reject(error);
-				resolve(results);
+				if (results.length === 0) return reject(new Error("User not found"));
+				resolve(results[0]);
 			});
 		});
 	},
+
+	// Get user by email
+	getUserByEmail(data) {
+		return new Promise((resolve, reject) => {
+			const sqlStatement = `
+			SELECT id, username, email, dateOfCreation, gamesPlayed, gamesWon, password FROM Users
+			WHERE email = ?;
+		  `;
+			const values = [data.email];
+
+			pool.query(sqlStatement, values, (error, results) => {
+				if (error) return reject(error);
+				resolve(results.length ? results[0] : null); // Return null if no user found
+			});
+		});
+	}
+	,
 
 	// Update the number of games played and won for a specific user
 	updateUserStatsByUserName(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            UPDATE Users
-            SET gamesPlayed = ?, gamesWon = ?
-            WHERE username = ?
-            `;
+        UPDATE Users
+        SET gamesPlayed = ?, gamesWon = ?
+        WHERE username = ?;
+      `;
 
 			const values = [data.gamesPlayed, data.gamesWon, data.username];
 
@@ -108,9 +127,9 @@ module.exports = {
 	deleteUserByUsername(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            DELETE FROM Users
-            WHERE username = ?
-            `;
+        DELETE FROM Users
+        WHERE username = ?;
+      `;
 
 			const values = [data.username];
 

@@ -3,3 +3,4 @@ node_modules
 eslint.config.mjs
 readme.md
 package-lock.json
+.env
