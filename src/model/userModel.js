@@ -1,11 +1,12 @@
 const pool = require("../services/mysql-service.js");
 
 module.exports = {
+	// Create a new user with gamesPlayed and gamesWon columns initialized to 0
 	createUser(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            INSERT INTO Users (username, email, password, dateOfCreation, highestScore)
-            VALUES (?, ?, ?, NOW(), 0);
+            INSERT INTO Users (username, email, password, dateOfCreation, gamesPlayed, gamesWon)
+            VALUES (?, ?, ?, NOW(), 0, 0);
             `;
 
 			const values = [data.username, data.email, data.password];
@@ -17,10 +18,11 @@ module.exports = {
 		});
 	},
 
+	// Get user by ID, including gamesPlayed and gamesWon
 	getUserById(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT username, dateOfCreation, highestScore FROM Users
+            SELECT username, dateOfCreation, gamesPlayed, gamesWon FROM Users
             WHERE id = ?;
             `;
 
@@ -33,10 +35,11 @@ module.exports = {
 		});
 	},
 
+	// Get user by username, including gamesPlayed and gamesWon
 	getUserByUsername(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT id, dateOfCreation, highestScore FROM Users
+            SELECT id, dateOfCreation, gamesPlayed, gamesWon FROM Users
             WHERE username = ?;
             `;
 
@@ -49,10 +52,11 @@ module.exports = {
 		});
 	},
 
-	getUserHighScoreByUsername(data) {
+	// Get the number of games played and won by username
+	getUserStatsByUsername(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT highestScore FROM Users
+            SELECT gamesPlayed, gamesWon FROM Users
             WHERE username = ?;
             `;
 
@@ -65,10 +69,11 @@ module.exports = {
 		});
 	},
 
+	// Get user by username with password (including gamesPlayed and gamesWon)
 	getUserByUsernameWithPassword(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
-            SELECT id, dateOfCreation, highestScore, password FROM Users
+            SELECT id, dateOfCreation, gamesPlayed, gamesWon, password FROM Users
             WHERE username = ?;
             `;
 
@@ -81,15 +86,16 @@ module.exports = {
 		});
 	},
 
-	updateUserHighestScoreByUserName(data) {
+	// Update the number of games played and won for a specific user
+	updateUserStatsByUserName(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
             UPDATE Users
-            SET highestScore = ?
+            SET gamesPlayed = ?, gamesWon = ?
             WHERE username = ?
             `;
 
-			const values = [data.newHighScore, data.username];
+			const values = [data.gamesPlayed, data.gamesWon, data.username];
 
 			pool.query(sqlStatement, values, (error, results) => {
 				if (error) return reject(error);
@@ -98,6 +104,7 @@ module.exports = {
 		});
 	},
 
+	// Delete a user by username
 	deleteUserByUsername(data) {
 		return new Promise((resolve, reject) => {
 			const sqlStatement = `
