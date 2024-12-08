@@ -1,6 +1,6 @@
-const io = require("socket.io")(server); // Assuming `server` is your HTTP server
 const jwt = require("jsonwebtoken");
 const jwtSecretKey = process.env.JWT_SECRET_KEY;
+const socketEvents = require("../events/socketEvents.js");
 
 // Middleware to validate JWT token for socket connections
 io.use((socket, next) => {
@@ -23,18 +23,24 @@ io.use((socket, next) => {
 	});
 });
 
+
 // When a client successfully connects, you can access socket.userData
 io.on("connection", (socket) => {
 	console.log(`User connected: ${socket.id}`);
 	console.log("User data:", socket.userData); // The decoded JWT payload
 
-	// Handle specific socket events
-	socket.on("message", (data) => {
-		console.log(data);
-	});
+
+	// Register event listeners
+	socket.on("createRoom", (data) => socketEvents.createRoom(socket, data));
+	socket.on("joinRoom", (data) => socketEvents.joinRoom(socket, data));
+	socket.on("startGame", (data) => socketEvents.startGame(socket, data));
+	socket.on("submitWord", (data) => socketEvents.submitWord(socket, data));
+	socket.on("leaveRoom", (data) => socketEvents.leaveRoom(socket, data));
+	socket.on("endGame", (data) => socketEvents.endGame(socket, data));
 
 	// Handle disconnection
 	socket.on("disconnect", () => {
 		console.log(`User disconnected: ${socket.id}`);
+		// Optionally, handle cleanup for any rooms the user was in
 	});
 });

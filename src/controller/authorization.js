@@ -35,3 +35,45 @@ module.exports.validateTokenMiddleWare = async (req, res, next) => {
 		return res.status(500).json({ message: "Internal Server Error" }); // Handle any other errors
 	}
 };
+
+
+module.exports.functionValidateTokenAndReroute = async (req, res, route) => {
+	if(route == "signup") return res.render("signup");
+
+	let token = null;
+
+	// Try to get the token from the Authorization header (Bearer <token>)
+	const authHeader = req.headers["authorization"];
+	if (authHeader && authHeader.startsWith("Bearer ")) {
+		token = authHeader.split(" ")[1];
+	}
+
+	// If no token found in Authorization header, fallback to cookies
+	if (!token && req.cookies && req.cookies.token) {
+		token = req.cookies.token;
+	}
+
+	// If there's no token, redirect to login or the desired route
+	if (!token) {
+		return res.redirect("/landing");
+	}
+
+	try {
+		// Verify the JWT with the secret key
+		jwt.verify(token, jwtSecretKey, (err, decoded) => {
+			if (err) {
+				console.error("Token verification error:", err);
+				return res.render(route); // Render the fallback route in case of error
+			}
+
+			// Attach the decoded token data to req.userData
+			req.userData = decoded;
+			// Redirect or continue with the request processing
+			return res.redirect("/");
+		});
+	} catch (e) {
+		console.error("Middleware error", e);
+		// If an error occurs, send a response or render a fallback route
+		res.status(500).json({ msg: "Server Error" });
+	}
+}

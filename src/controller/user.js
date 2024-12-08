@@ -1,7 +1,8 @@
 const { body, validationResult } = require("express-validator");
+const authorizationFunctions = require("./authorization.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const userModel = require("../models/userModel");
+const userModel = require("../model/userModel.js");
 
 // User Signup
 module.exports.userSignup = [
@@ -118,3 +119,33 @@ module.exports.userLogin = [
 		}
 	}
 ];
+
+module.exports.userLogOut = (req, res, next) => {
+	// TODO: token blacklisting
+
+	// Clear the token cookie
+	res.clearCookie("token", {
+		path: "/",
+		httpOnly: true,
+		// secure: true,
+		sameSite: "strict"
+	});
+
+	// Send a successful logout response
+	res.status(200).json({ message: "Logged out successfully" });
+}
+
+module.exports.renderHomePage = (req, res, next) => {
+	return res.render("play.ejs");
+}
+
+module.exports.renderLandingPage = (req, res, next) => {
+	return res.render("landing.ejs");
+}
+
+module.exports.logIn = (req, res, next) => {
+	authorizationFunctions.functionValidateTokenAndReroute(req, res, "login");
+}
+module.exports.signUp = (req, res, next) => {
+	authorizationFunctions.functionValidateTokenAndReroute(req, res, "signup");
+}

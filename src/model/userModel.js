@@ -4,7 +4,7 @@ module.exports = {
 	// Create a new user with gamesPlayed and gamesWon columns initialized to 0
 	createUser(data) {
 		return new Promise((resolve, reject) => {
-			const sqlStatement = `
+			const sqlStatement = `	
         INSERT INTO Users (username, email, password, dateOfCreation, gamesPlayed, gamesWon)
         VALUES (?, ?, ?, NOW(), 0, 0);
       `;

@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
 global.io = socketio(server);
-require("./src/controller/socketEvents.js");
+require("./src/controller/socketController.js");
 
 
 // express middlewares
@@ -31,7 +31,7 @@ app.use(
 		cookie: {
 			maxAge: 6000,
 			httpOnly: true,
-			secure: true,
+			// secure: true,
 			sameSite: "none" // enable secure cookies on HTTPS only
 		}
 	})
@@ -50,7 +50,7 @@ app.use("/", expressStaticGzip(path.join(__dirname, "./client/public"), { //OMG 
 }));
 
 app.use(function (req, res) {
-	res.status(404).send("🍌 Error 404.");
+	res.status(404).render("404.ejs");
 });
 
 
